@@ -54,6 +54,8 @@ public enum Binding implements KeyBind{
     chat_history_next(KeyCode.DOWN),
     chat_scroll(new Axis(KeyCode.SCROLL)),
     console(KeyCode.F8),
+    freecam(KeyCode.V),
+    suspend_movement(KeyCode.ALT_LEFT),
     ;
 
     private final KeybindValue defaultValue;

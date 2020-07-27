@@ -1,6 +1,7 @@
 package mindustry.ui.fragments;
 
 import arc.*;
+import arc.func.Prov;
 import mindustry.annotations.Annotations.*;
 import arc.struct.*;
 import arc.graphics.*;
@@ -23,6 +24,7 @@ import mindustry.entities.*;
 import mindustry.entities.type.*;
 import mindustry.game.*;
 import mindustry.game.EventType.*;
+import mindustry.game.griefprevention.TileInfoHud;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.input.*;
@@ -31,6 +33,9 @@ import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.ui.Cicon;
 import mindustry.ui.dialogs.*;
+
+// CUSTOM
+import mindustry.world.Tile;
 
 import static mindustry.Vars.*;
 
@@ -47,6 +52,10 @@ public class HudFragment extends Fragment{
     private boolean showHudText;
 
     private long lastToast;
+
+    // custom
+    Table coreTable;
+    Table ecoTable;
 
     public void build(Group parent){
 
@@ -160,7 +169,6 @@ public class HudFragment extends Fragment{
                 wavesMain.row();
                 wavesMain.table(Tex.button, t -> t.margin(10f).add(new Bar("boss.health", Pal.health, () -> state.boss() == null ? 0f : state.boss().healthf()).blink(Color.white))
                 .grow()).fillX().visible(() -> state.rules.waves && state.boss() != null).height(60f).get();
-                wavesMain.row();
             }
 
             {
@@ -250,6 +258,9 @@ public class HudFragment extends Fragment{
                 info.label(() -> fps.get(Core.graphics.getFramesPerSecond())).left().style(Styles.outlineLabel);
                 info.row();
                 info.label(() -> ping.get(netClient.getPing())).visible(net::client).left().style(Styles.outlineLabel);
+                info.row();
+                info.table(Tex.clear, t -> t.add(new Bar(() -> "Health: " + player.health + " / " + player.maxHealth(), () -> Pal.health, () -> player.health / player.maxHealth()).blink(Color.white))
+                        .grow()).fillX().width(300f).height(20f).pad(4);
             }).top().left();
         });
         
@@ -257,6 +268,10 @@ public class HudFragment extends Fragment{
             t.visible(() -> Core.settings.getBool("minimap") && !state.rules.tutorial);
             //minimap
             t.add(new Minimap());
+            t.row();
+            t.add(coreTable = new Table());
+            t.row();
+            t.add(ecoTable = new Table());
             t.row();
             //position
             t.label(() -> world.toTile(player.x) + "," + world.toTile(player.y))
@@ -342,6 +357,12 @@ public class HudFragment extends Fragment{
         parent.fill(t -> {
             t.bottom().visible(() -> control.saves.isSaving());
             t.add("$saveload").style(Styles.outlineLabel);
+        });
+
+        //persistent tileinfo
+        parent.fill(t -> {
+            t.top().visible(() -> griefWarnings.tileInfoHud);
+            t.add(new TileInfoHud());
         });
 
         parent.fill(p -> {

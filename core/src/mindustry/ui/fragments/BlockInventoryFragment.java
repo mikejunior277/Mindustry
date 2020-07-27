@@ -90,6 +90,14 @@ public class BlockInventoryFragment extends Fragment{
 
     private void rebuild(boolean actions){
 
+        // cutom
+        for(int i = 0; i < state.teams.get(player.getTeam()).cores.size; i++) {
+            if(state.teams.get(player.getTeam()).cores.get(i).tile.entity.id == tile.entity.id) {
+                rebuildCore(actions);
+                break;
+            }
+        }
+
         IntSet container = new IntSet();
 
         table.clearChildren();
@@ -184,6 +192,8 @@ public class BlockInventoryFragment extends Fragment{
             table.setSize(0f, 0f);
         }
 
+        System.out.println("Tile: " + tile.entity.id + " Core: " + player.getClosestCore().id);
+
         updateTablePosition();
 
         table.visible(true);
@@ -223,4 +233,120 @@ public class BlockInventoryFragment extends Fragment{
         stack.add(t);
         return stack;
     }
+
+    private void rebuildCore(boolean actions){
+        Table coreTable = new Table();
+        IntSet container = new IntSet();
+
+        coreTable.background(Tex.inventory);
+        coreTable.touchable(Touchable.disabled);
+
+        int cols = 5;
+        int row = 0;
+
+        coreTable.margin(4f);
+        coreTable.defaults().size(8 * 5).pad(4f);
+        Tile core = state.teams.get(player.getTeam()).cores.get(0).tile;
+        if(core.block().hasItems){
+
+            for(int i = 0; i < content.items().size; i++){
+                Item item = content.item(i);
+                if(i == 4 || i == 5 || i == 8 || i == 13 || i == 14 || i ==15) continue;
+                container.add(i);
+
+                Element image = itemImage(item.icon(Cicon.xlarge), () -> {
+                    if(core == null || core.entity == null){
+                        return "";
+                    }
+                    return round(core.entity.items.get(item));
+                });
+                coreTable.add(image);
+
+                if(row++ % cols == cols - 1) coreTable.row();
+            }
+        }
+
+        if(row == 0){
+            coreTable.setSize(0f, 0f);
+        }
+
+        System.out.println("Tile: " + tile.entity.id + " Core: " + player.getClosestCore().id);
+
+        coreTable.visible(true);
+
+        if(actions){
+            coreTable.setScale(0f, 1f);
+            coreTable.actions(Actions.scaleTo(1f, 1f, 0.07f, Interpolation.pow3Out));
+        }else{
+            coreTable.setScale(1f, 1f);
+        }
+        ui.hudfrag.coreTable.clearChildren();
+        ui.hudfrag.coreTable.add(coreTable);
+
+//        // freash eco table
+//        for(int i = 0; i < content.items().size; i++) {
+//            if (i == 4 || i == 5 || i == 8 || i == 13 || i == 14 || i == 15) continue;
+//            Item item = content.item(i);
+//            coreStorage[i] = core.entity.items.get(item);
+//        }
+//        hasEcoTable = false;
+//        updateEcoTable();
+    }
+//
+//    private float[] coreStorage = new float[15];
+//    private boolean hasEcoTable = false;
+//    private float sleep = 0;
+//    private void updateEcoTable() {
+//        if(state.teams.get(player.getTeam()) == null) {
+//            // match does not start
+//            return;
+//        }
+//        if(!hasEcoTable) {
+//            // reset all vars
+//            sleep = 0;
+//            // coreStorage = new float[15];
+//            hasEcoTable = true;
+//        }
+//        if(sleep % 20 != 0) {
+//            sleep ++;
+//            return;
+//        }
+//        IntSet container = new IntSet();
+//        Table ecoTable = new Table();
+//        ecoTable.background(Tex.inventory);
+//        ecoTable.touchable(Touchable.disabled);
+//
+//        int cols = 5;
+//        int row = 0;
+//
+//        ecoTable.margin(4f);
+//        ecoTable.defaults().size(8 * 5).pad(4f);
+//        Tile core = state.teams.get(player.getTeam()).cores.get(0).tile;
+//        for (int i = 0; i < content.items().size; i++) {
+//            Item item = content.item(i);
+//            if (i == 4 || i == 5 || i == 8 || i == 13 || i == 14 || i == 15) continue;
+//            container.add(i);
+//            // update the new core value
+//            coreStorage[i] = coreStorage[i] - core.entity.items.get(item);
+//            float value = coreStorage[i];
+//            Element image = itemImage(item.icon(Cicon.xlarge), () -> {
+//                if(core == null || core.entity == null){
+//                    return "";
+//                }
+//                return round(value);
+//            });
+//            ecoTable.add(image);
+//            if(row++ % cols == cols - 1) ecoTable.row();
+//        }
+//        if(row == 0){
+//            ecoTable.setSize(0f, 0f);
+//        }
+//
+//        ecoTable.visible(true);
+//
+//        ecoTable.setScale(0f, 1f);
+//        ecoTable.actions(Actions.scaleTo(1f, 1f, 0.07f, Interpolation.pow3Out));
+//        ui.hudfrag.ecoTable.clearChildren();
+//        ui.hudfrag.ecoTable.add(ecoTable);
+//    }
 }

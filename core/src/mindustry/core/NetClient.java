@@ -31,6 +31,10 @@ import mindustry.world.modules.*;
 import java.io.*;
 import java.util.zip.*;
 
+// custom
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+
 import static mindustry.Vars.*;
 
 public class NetClient implements ApplicationListener{
@@ -81,7 +85,7 @@ public class NetClient implements ApplicationListener{
             c.mods = mods.getModStrings();
             c.mobile = mobile;
             c.versionType = Version.type;
-            c.color = Color.rgba8888(player.color);
+            c.color = player.color.rgba();
             c.usid = getUsid(packet.addressTCP);
             c.uuid = platform.getUUID();
 
@@ -103,6 +107,7 @@ public class NetClient implements ApplicationListener{
             logic.reset();
             platform.updateRPC();
             player.name = Core.settings.getString("name");
+            player.color.set(Core.settings.getInt("color-0"));
 
             if(quiet) return;
 
@@ -138,6 +143,7 @@ public class NetClient implements ApplicationListener{
     @Remote(targets = Loc.server, variants = Variant.both)
     public static void sendMessage(String message, String sender, Player playersender){
         if(Vars.ui != null){
+            if(griefWarnings.auto.interceptMessage(message, sender, playersender)) return;
             Vars.ui.chatfrag.addMessage(message, sender);
         }
 
@@ -152,6 +158,19 @@ public class NetClient implements ApplicationListener{
     public static void sendMessage(String message){
         if(Vars.ui != null){
             Vars.ui.chatfrag.addMessage(message, null);
+            Pattern pattern = Pattern.compile("kicking\\[orange\\].+\\[\\].\\[accent\\]");
+            Matcher m = pattern.matcher(message);
+            if(m.find()) {
+                String target_player_name = message.substring(m.start() + 16, m.end() - 11);
+                for(Player user: playerGroup){
+                    if(user.name.equals(target_player_name)) {
+                        ui.chatfrag.addMessage("Showing player " + griefWarnings.formatPlayer(user), null);
+                        griefWarnings.auto.setFreecam(true, user.x, user.y);
+                        break;
+                    }
+                }
+            }
+            // System.out.println(message.substring(message.indexOf(' ', 5), message.indexOf('.')));
         }
     }
 
@@ -233,7 +252,7 @@ public class NetClient implements ApplicationListener{
 
     @Remote(variants = Variant.one)
     public static void onTraceInfo(Player player, TraceInfo info){
-        if(player != null){
+        if(player != null && !griefWarnings.handleTraceResult(player, info)){
             ui.traces.show(player, info);
         }
     }
@@ -342,6 +361,7 @@ public class NetClient implements ApplicationListener{
             netClient.quiet = true;
             net.disconnect();
         });
+        griefWarnings.handleWorldDataBegin();
     }
 
     @Remote(variants = Variant.one)
@@ -352,6 +372,7 @@ public class NetClient implements ApplicationListener{
 
     @Remote
     public static void onPlayerDisconnect(int playerid){
+        griefWarnings.handlePlayerDisconnect(playerid);
         playerGroup.removeByID(playerid);
     }
 
@@ -400,6 +421,7 @@ public class NetClient implements ApplicationListener{
                 if(add){
                     entity.add();
                     netClient.addRemovedEntity(entity.getID());
+                    if (entity instanceof Player) griefWarnings.handlePlayerEntitySnapshot((Player)entity);
                 }
             }
         }catch(IOException e){
