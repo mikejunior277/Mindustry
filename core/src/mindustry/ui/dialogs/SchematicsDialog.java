@@ -56,36 +56,6 @@ public class SchematicsDialog extends FloatingDialog{
 
         cont.row();
 
-        cont.table(si -> {
-            si.center();
-            si.addButton("\uF840", () -> {
-                search = "power";
-                rebuildPane[0].run();
-            });
-            si.addButton("\uF835", () -> {
-                search = "graphite";
-                rebuildPane[0].run();
-            });
-            si.addButton("\uF82F", () -> {
-                search = "silicon";
-                rebuildPane[0].run();
-            });
-            si.addButton("\uF854", () -> {
-                search = "def";
-                rebuildPane[0].run();
-            });
-            si.addButton("\uF824", () -> {
-                search = "snek";
-                rebuildPane[0].run();
-            });
-            si.addButton("\uF897", () -> {
-                search = "";
-                rebuildPane[0].run();
-            });
-        }).fillX();
-
-        cont.row();
-
         cont.pane(t -> {
             t.top();
             t.margin(20f);
@@ -170,7 +140,7 @@ public class SchematicsDialog extends FloatingDialog{
 
                     sel[0].getStyle().up = Tex.pane;
 
-                    if(++i % (mobile ? Core.graphics.isPortrait() ? 2 : 3 : 6) == 0){
+                    if(++i % (mobile ? Core.graphics.isPortrait() ? 2 : 3 : 4) == 0){
                         t.row();
                     }
                 }
